@@ -29,4 +29,19 @@ export const FEATURE_ROUTES: Routes = [
       },
     ],
   },
+  // Story: shared-channel — vendor/customer shared channels with live messages.
+  {
+    path: 'channels',
+    loadComponent: () => import('../shared/layout.component').then(m => m.LayoutComponent),
+    data: { rendersSupportFooterInLayout: true },
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./shared-channel/channels.component').then(m => m.ChannelsComponent),
+      },
+    ],
+  },
 ];

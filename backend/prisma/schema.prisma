@@ -177,3 +177,56 @@ model VendorDocument {
 
   @@index([profileId])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared channels (Story: shared-channel)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum ChannelMemberRole {
+  VENDOR
+  CUSTOMER
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  // Plain FK to User (no back-relation so the auth table stays untouched).
+  userId    String   @unique
+  name      String?
+  email     String
+  createdAt DateTime @default(now())
+}
+
+model Channel {
+  id              String          @id @default(cuid())
+  name            String
+  // Plain FK to the vendor User that created the channel.
+  createdByUserId String
+  createdAt       DateTime        @default(now())
+  members         ChannelMember[]
+  messages        Message[]
+
+  @@index([createdByUserId])
+}
+
+model ChannelMember {
+  id        String            @id @default(cuid())
+  channelId String
+  channel   Channel           @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  userId    String
+  role      ChannelMemberRole
+  createdAt DateTime          @default(now())
+
+  @@unique([channelId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id           String   @id @default(cuid())
+  channelId    String
+  channel      Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  authorUserId String
+  body         String
+  createdAt    DateTime @default(now())
+
+  @@index([channelId, createdAt])
+}
