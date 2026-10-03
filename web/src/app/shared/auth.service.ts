@@ -8,11 +8,11 @@ export interface User {
   email: string;
   name: string;
   firmName?: string;
-  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+  role: 'USER' | 'ADMIN' | 'MANAGER';
   firmId?: string;
 }
 
-const ROLES: readonly User['role'][] = ['USER', 'ADMIN', 'SUPER_ADMIN'];
+const ROLES: readonly User['role'][] = ['USER', 'ADMIN', 'MANAGER'];
 
 /**
  * Parse a persisted user, returning null for anything that is not a valid
@@ -239,12 +239,17 @@ export class AuthService {
   }
 
   hasAdminRole(): boolean {
-    const role = this._user()?.role;
-    return role === 'ADMIN' || role === 'SUPER_ADMIN';
+    return this._user()?.role === 'ADMIN';
   }
 
+  /** Alias kept for sidebar compatibility. */
   isSuperAdmin(): boolean {
-    return this._user()?.role === 'SUPER_ADMIN' || this._user()?.role === 'ADMIN';
+    return this._user()?.role === 'ADMIN';
+  }
+
+  hasRole(...roles: User['role'][]): boolean {
+    const role = this._user()?.role;
+    return role !== undefined && roles.includes(role);
   }
 
   isAuthenticated(): boolean {
@@ -266,7 +271,7 @@ export class AuthService {
       id: 'demo-admin',
       email: 'admin@example.com',
       name: 'Demo Administrator',
-      role: 'ADMIN',
+      role: 'ADMIN' as const,
       firmId: undefined,
       firmName: undefined
     });

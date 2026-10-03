@@ -5,13 +5,13 @@ export interface ImpersonationIdentity {
   id: string;
   email: string;
   name: string;
-  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+  role: 'USER' | 'ADMIN' | 'MANAGER';
   firmId: string | null;
   firmName?: string | null;
   impersonating: boolean;
 }
 
-export type UserRole = 'ADMIN' | 'USER' | 'SUPER_ADMIN';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'USER';
 
 export interface AuthUser {
   id: string;
