@@ -297,3 +297,23 @@ model OrderNotification {
 
   @@index([userId, createdAt])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Invoice generation (Story: invoice-generation)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Invoice {
+  id             String   @id @default(cuid())
+  // Plain FK to Order (owned by order-management; no back-relation so Order stays untouched).
+  orderId        String   @unique
+  // Plain FKs to User (auth tables stay untouched).
+  vendorUserId   String
+  customerUserId String
+  invoiceNumber  String   @unique
+  totalAmount    Decimal  @db.Decimal(12, 2)
+  issuedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([vendorUserId])
+  @@index([customerUserId])
+}

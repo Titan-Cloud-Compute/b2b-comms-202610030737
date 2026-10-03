@@ -59,4 +59,19 @@ export const FEATURE_ROUTES: Routes = [
       },
     ],
   },
+  // Story: invoice-generation — vendor issues invoices for confirmed orders, customer downloads PDFs.
+  {
+    path: 'invoices',
+    loadComponent: () => import('../shared/layout.component').then(m => m.LayoutComponent),
+    data: { rendersSupportFooterInLayout: true },
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./invoice-generation/invoices.component').then(m => m.InvoicesComponent),
+      },
+    ],
+  },
 ];
