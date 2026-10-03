@@ -44,4 +44,19 @@ export const FEATURE_ROUTES: Routes = [
       },
     ],
   },
+  // Story: order-management — customer catalog + purchase orders, vendor queue with confirm/ETA.
+  {
+    path: 'orders',
+    loadComponent: () => import('../shared/layout.component').then(m => m.LayoutComponent),
+    data: { rendersSupportFooterInLayout: true },
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./order-management/orders.component').then(m => m.OrdersComponent),
+      },
+    ],
+  },
 ];
