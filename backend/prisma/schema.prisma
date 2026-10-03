@@ -317,3 +317,21 @@ model Invoice {
   @@index([vendorUserId])
   @@index([customerUserId])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Notification preferences (Story: notification-preferences)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Effective-dated: every update appends a row; an event is governed by the
+// latest row whose effectiveFrom is <= the event's createdAt.
+model NotificationPreference {
+  id            String   @id @default(cuid())
+  // Plain FK to User (no back-relation so the auth table stays untouched).
+  userId        String
+  orderAlerts   Boolean  @default(true)
+  messageAlerts Boolean  @default(true)
+  effectiveFrom DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  @@index([userId, effectiveFrom])
+}
