@@ -51,6 +51,13 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     tab: 'users',
   },
   {
+    path: '/admin/audit-log',
+    label: 'Audit Log',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>',
+    adminOnly: true,
+    tab: 'audit-log',
+  },
+  {
     path: '/admin/app-settings',
     label: 'App Settings',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8 7 17M17 7l2.8-2.8"/></svg>',
@@ -62,5 +69,6 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
 export const ADMIN_TAB_MAP: Record<string, string> = {
   'Overview': 'overview',
   'Users': 'users',
+  'Audit Log': 'audit-log',
   'App Settings': 'app-settings',
 };

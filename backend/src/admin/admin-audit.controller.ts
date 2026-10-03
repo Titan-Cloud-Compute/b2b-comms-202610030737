@@ -61,10 +61,35 @@ export class AdminAuditController {
 
     const [rows, total] = await this.prisma.runAsAdmin((tx) =>
       Promise.all([
-        tx.auditLog.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }),
+        tx.auditLog.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take,
+          skip,
+          include: { actorUser: { select: { email: true } } },
+        }),
         tx.auditLog.count({ where }),
       ]),
     );
-    return { rows, total, page: pageNum, pageSize: take };
+    return {
+      rows: rows.map(({ actorUser, ...row }) => ({
+        ...row,
+        actorEmail: actorUser?.email ?? null,
+        outcome: deriveOutcome(row.payloadJson),
+      })),
+      total,
+      page: pageNum,
+      pageSize: take,
+    };
   }
+}
+
+/** Outcome of an audited event: payload.outcome when recorded, else 'success'. */
+export function deriveOutcome(payload: Prisma.JsonValue): 'success' | 'failure' {
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    const p = payload as Record<string, unknown>;
+    if (p['outcome'] === 'failure' || p['outcome'] === 'success') return p['outcome'];
+    if (p['error']) return 'failure';
+  }
+  return 'success';
 }

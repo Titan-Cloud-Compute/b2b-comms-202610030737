@@ -77,6 +77,11 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
       },
       {
+        path: 'admin/audit-log',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)
+      },
+      {
         path: 'admin/app-settings',
         canActivate: [roleGuard('ADMIN')],
         loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)

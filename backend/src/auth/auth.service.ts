@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -15,6 +16,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AppConfigService } from '../config/config.service';
 import type { SessionPayload } from './session.types';
 import { MailerService } from './mailer.service';
+import { AuditLogService } from '../common/audit-log.service';
 
 /** Default org seat cap when SystemSetting ORG_MAX_SEATS is unset. */
 const DEFAULT_ORG_MAX_SEATS = 5;
@@ -51,7 +53,42 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly config: AppConfigService,
     private readonly mailer: MailerService,
+    @Optional() private readonly audit?: AuditLogService,
   ) {}
+
+  /** Record an authentication event in AuditLog. Never throws. */
+  private async recordAuthEvent(
+    action: string,
+    user: Pick<User, 'id' | 'role'> | null,
+    outcome: 'success' | 'failure',
+    extra?: Record<string, unknown>,
+  ): Promise<void> {
+    if (!this.audit) return;
+    try {
+      await this.audit.write({
+        actor: !user ? AuditActor.SYSTEM : user.role === UserRole.ADMIN ? AuditActor.ADMIN : AuditActor.USER,
+        actorUserId: user?.id ?? null,
+        action,
+        payload: { outcome, ...extra },
+      });
+    } catch {
+      /* audit must never block auth */
+    }
+  }
+
+  /** Record a logout for the session token being cleared (if decodable). */
+  async recordLogout(token?: string | null): Promise<void> {
+    let user: Pick<User, 'id' | 'role'> | null = null;
+    if (token) {
+      try {
+        const claims = await this.jwt.verifyAsync<SessionPayload>(token);
+        if (claims?.userId) user = { id: claims.userId, role: claims.role as UserRole };
+      } catch {
+        user = null;
+      }
+    }
+    await this.recordAuthEvent('auth.logout', user, 'success');
+  }
 
   /**
    * Atomically claim an unconsumed, unexpired registration token. Returns the
@@ -219,6 +256,7 @@ export class AuthService {
       tx.user.findUnique({ where: { email } }),
     );
     if (!user || !user.passwordHash) {
+      await this.recordAuthEvent('auth.login', null, 'failure', { reason: 'unknown_user' });
       throw new UnauthorizedException('invalid credentials');
     }
     let ok = false;
@@ -227,8 +265,12 @@ export class AuthService {
     } catch {
       ok = false;
     }
-    if (!ok) throw new UnauthorizedException('invalid credentials');
+    if (!ok) {
+      await this.recordAuthEvent('auth.login', user, 'failure', { reason: 'invalid_password' });
+      throw new UnauthorizedException('invalid credentials');
+    }
 
+    await this.recordAuthEvent('auth.login', user, 'success');
     return { user, token: await this.issueToken(user) };
   }
 
@@ -267,13 +309,17 @@ export class AuthService {
     } catch {
       ok = false;
     }
-    if (!ok) throw new UnauthorizedException('current password is incorrect');
+    if (!ok) {
+      await this.recordAuthEvent('auth.password_change', user, 'failure', { reason: 'invalid_current_password' });
+      throw new UnauthorizedException('current password is incorrect');
+    }
 
     const passwordHash = await bcrypt.hash(args.newPassword, 10);
     const updated = await this.prisma.runAsAdmin((tx) =>
       tx.user.update({ where: { id: userId }, data: { passwordHash } }),
     );
     this.logger.log(`password changed for user=${userId}`);
+    await this.recordAuthEvent('auth.password_change', updated, 'success');
     return updated;
   }
 
@@ -348,20 +394,24 @@ export class AuthService {
       }),
     );
 
-    if (result.count !== 1) return false;
+    if (result.count !== 1) {
+      await this.recordAuthEvent('auth.password_reset', null, 'failure', { reason: 'invalid_or_expired_token' });
+      return false;
+    }
 
     const resetToken = await this.prisma.runAsAdmin((tx) =>
       tx.passwordResetToken.findUnique({ where: { token } }),
     );
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
-    await this.prisma.runAsAdmin((tx) =>
+    const resetUser = await this.prisma.runAsAdmin((tx) =>
       tx.user.update({
         where: { id: resetToken!.userId },
         data: { passwordHash },
       }),
     );
 
+    await this.recordAuthEvent('auth.password_reset', resetUser ?? null, 'success');
     return true;
   }
 
