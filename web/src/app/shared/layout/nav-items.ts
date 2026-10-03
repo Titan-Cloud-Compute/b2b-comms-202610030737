@@ -14,6 +14,16 @@ export const FIRM_NAV_ITEMS: NavItem[] = [
     label: 'Dashboard',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
   },
+  {
+    path: '/vendor',
+    label: 'Vendor Documents',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
+  },
+  {
+    path: '/vendor/profile',
+    label: 'Company Profile',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="14" rx="1"/><path d="M8 7V3h8v4"/></svg>',
+  },
 ];
 
 /** Entries shown to EVERY signed-in role, rendered outside the role branches. */

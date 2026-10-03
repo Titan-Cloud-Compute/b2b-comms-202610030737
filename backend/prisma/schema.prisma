@@ -137,3 +137,43 @@ model ColossusAccount {
 
   @@map("colossus_accounts")
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Vendor onboarding (Story: vendor-onboarding)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum VendorDocumentStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model VendorProfile {
+  id           String           @id @default(cuid())
+  // Plain FK to User (no back-relation so the auth table stays untouched).
+  userId       String           @unique
+  companyName  String
+  website      String?
+  address      String?
+  contactName  String
+  contactEmail String
+  contactPhone String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  documents    VendorDocument[]
+}
+
+model VendorDocument {
+  id         String               @id @default(cuid())
+  profileId  String
+  profile    VendorProfile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  storageKey String
+  fileName   String
+  docType    String
+  mimeType   String?
+  sizeBytes  Int                  @default(0)
+  status     VendorDocumentStatus @default(PENDING_REVIEW)
+  uploadedAt DateTime             @default(now())
+
+  @@index([profileId])
+}
