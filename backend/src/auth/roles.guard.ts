@@ -18,8 +18,9 @@ export const ROLES_KEY = 'allowed_roles';
  * to populate req.session.
  *
  * Convenience aliases:
- *   @RequireUser()   — any authenticated user (USER, MANAGER, ADMIN)
- *   @RequireAdmin()  — ADMIN only
+ *   @RequireUser()    — any authenticated user (USER, MANAGER, ADMIN)
+ *   @RequireManager() — MANAGER or ADMIN (managers and up)
+ *   @RequireAdmin()   — ADMIN only
  */
 export const Roles = (...roles: UserRole[]): ReturnType<typeof SetMetadata> =>
   SetMetadata(ROLES_KEY, roles);
@@ -28,6 +29,8 @@ export const RequireUser = (): ReturnType<typeof SetMetadata> =>
   Roles('USER', 'MANAGER', 'ADMIN');
 export const RequireFirmUser = (): ReturnType<typeof SetMetadata> =>
   Roles('USER', 'MANAGER', 'ADMIN');
+export const RequireManager = (): ReturnType<typeof SetMetadata> =>
+  Roles('MANAGER', 'ADMIN');
 export const RequireAdmin = (): ReturnType<typeof SetMetadata> =>
   Roles('ADMIN');
 
