@@ -21,4 +21,15 @@ export class MailerService {
     // integration tests can capture it without an SMTP relay.
     this.logger.log(`[password-reset] token for ${email}: ${token}`);
   }
+
+  /**
+   * Send a customer invitation email to `email` containing `activationUrl`,
+   * the single-use link that activates the invited customer's account.
+   */
+  async sendCustomerInvitation(email: string, activationUrl: string): Promise<void> {
+    this.logger.log(
+      `[customer-invite] to=${email} subject="You're invited to the workspace portal" ` +
+        `body="Activate your customer account: ${activationUrl}"`,
+    );
+  }
 }

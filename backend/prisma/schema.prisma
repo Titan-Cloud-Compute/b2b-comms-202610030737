@@ -335,3 +335,29 @@ model NotificationPreference {
 
   @@index([userId, effectiveFrom])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Customer invite (Story: customer-invite)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CustomerInvitationStatus {
+  PENDING
+  ACCEPTED
+}
+
+// Single-use, expiring activation token emailed to an invited customer.
+model CustomerInvitation {
+  id              String                   @id @default(cuid())
+  email           String
+  token           String                   @unique
+  status          CustomerInvitationStatus @default(PENDING)
+  // Plain FKs to User (no back-relation so the auth table stays untouched).
+  invitedByUserId String
+  acceptedUserId  String?
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime                 @default(now())
+
+  @@index([email])
+  @@index([invitedByUserId, createdAt])
+}

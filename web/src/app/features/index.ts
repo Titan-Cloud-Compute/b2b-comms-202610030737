@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '../shared/auth.guards';
+import { authGuard, roleGuard } from '../shared/auth.guards';
 
 /**
  * Feature route registry.
@@ -88,5 +88,27 @@ export const FEATURE_ROUTES: Routes = [
           import('./notification-preferences/notifications.component').then(m => m.NotificationsComponent),
       },
     ],
+  },
+  // Story: customer-invite — admin invites a customer by email (activation link).
+  {
+    path: 'customer-invites',
+    loadComponent: () => import('../shared/layout.component').then(m => m.LayoutComponent),
+    data: { rendersSupportFooterInLayout: true },
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./customer-invite/customer-invite.component').then(m => m.CustomerInviteComponent),
+      },
+    ],
+  },
+  // Story: customer-invite — public activation page reached from the invitation email.
+  {
+    path: 'activate-invite',
+    loadComponent: () =>
+      import('./customer-invite/activate-invite.component').then(m => m.ActivateInviteComponent),
+    data: { hideSupportFooter: true },
   },
 ];
